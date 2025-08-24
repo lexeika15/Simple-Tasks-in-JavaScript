@@ -13,45 +13,7 @@ const usedUserIds = new Set();
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     loadPosts();
-
-    searchButton.addEventListener('click', () => {
-        stopRandomMode();
-        const count = getNumberFromInput(countInput, 1, 100, 'Введите значение count от 1 до 100');
-        const userId = getNumberFromInput(userIdInput, 1, 10, 'Введите значение userId от 1 до 10');
-        if ((userId === null || userId === 'invalid') &&
-            (count  === null || count  === 'invalid')) { return; }
-        container.innerHTML = `<p style="font-size: 18px; font-weight: bold;">Ищем...</p>`;
-        setTimeout(() => {
-            container.innerHTML = '';
-            let postsToShow = [...allPosts];
-            if(userId != null) postsToShow = postsToShow.filter(p => Number(p.userId) === userId);
-            if(count != null) postsToShow = postsToShow.slice(0, count);
-            renderPosts(postsToShow);
-        }, 3000);
-    });
-
-    if(randomCheckbox) {
-        randomCheckbox.addEventListener('change', (e) => {
-            if(e.target.checked) startRandomMode();
-            else {
-                stopRandomMode();
-                container.innerHTML = '';
-            }
-        });
-    }
-
-    if(titleInput) {
-        titleInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase().trim();
-            container.innerHTML = '';
-            if(q === '') {
-                renderPosts(allPosts.slice(0,30));
-                return;
-            }
-            const filtered = allPosts.filter(p => (p.title ?? '').toLowerCase().includes(q));
-            renderPosts(filtered);
-        });
-    }
+    registerEventHandlers();
 });
 
 function initElements() {
@@ -79,6 +41,60 @@ async function loadPosts() {
     catch(error) {
         console.error("Ошибка: ", error);
     }
+}
+
+function registerEventHandlers() {
+    searchButton.addEventListener('click', () => {
+        stopRandomMode();
+        const count = getNumberFromInput(countInput, 1, 100, 'Введите значение count от 1 до 100');
+        const userId = getNumberFromInput(userIdInput, 1, 10, 'Введите значение userId от 1 до 10');
+        if ((userId === null || userId === 'invalid') &&
+            (count  === null || count  === 'invalid')) { return; }
+        container.innerHTML = `<p style="font-size: 18px; font-weight: bold;">Ищем...</p>`;
+        setTimeout(() => {
+            updatePosts({ count, userId });
+        }, 3000);
+    });
+
+    if(randomCheckbox) {
+        randomCheckbox.addEventListener('change', (e) => {
+            if(e.target.checked) startRandomMode();
+            else {
+                stopRandomMode();
+                container.innerHTML = '';
+            }
+        });
+    }
+
+    if(titleInput) {
+        titleInput.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            if(q === '') {
+                updatePosts({ count: 30 });
+                return;
+            }
+            updatePosts({ query: q });
+        });
+    }
+}
+
+function updatePosts({ count = null, userId = null, query = '', showHeaderAfterClear = false } = {}) {
+    container.innerHTML = '';
+    if(showHeaderAfterClear) container.innerHTML = `<h3 style="margin: 0 0 8px;">Пользователь #${userId}</h3>`;
+    let postsToShow = [...allPosts];
+    if (query) {
+        postsToShow = postsToShow.filter(p => (p.title ?? '').toLowerCase().includes(query.toLowerCase()));
+    }
+
+    if (userId != null && userId !== 'invalid') {
+        postsToShow = postsToShow.filter(p => Number(p.userId) === userId);
+    }
+
+    if (count != null && count !== 'invalid') {
+        postsToShow = postsToShow.slice(0, count);
+    }
+
+    renderPosts(postsToShow);
 }
 
 function renderPosts(posts) {
@@ -116,7 +132,7 @@ function getRandomUnusedUserId() {
 }
 
 function renderRandomTick() {
-    const count = getCountFromInput();
+    const count = getNumberFromInput(countInput, 1, 100, 'Введите значение count от 1 до 100');
     if(count === 'invalid') {
         stopRandomMode();
         return;
@@ -130,13 +146,9 @@ function renderRandomTick() {
     }
 
     let posts = allPosts.filter(p => Number(p.userId) === uid);
-    if(count !== null) posts = posts.slice(0, count);
     if(!posts.length) container.innerHTML = `<p>У пользователя #${uid} нет постов. </p>`;
-    else {
-        container.innerHTML = '';
-        container.innerHTML = `<h3 style="margin: 0 0 8px;">Пользователь #${uid}</h3>`;
-        renderPosts(posts);
-    }
+    else updatePosts({ count, userId: uid, showHeaderAfterClear: true});
+
     usedUserIds.add(uid);
 }
 
