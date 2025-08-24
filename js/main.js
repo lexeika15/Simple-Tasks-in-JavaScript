@@ -11,33 +11,15 @@ let uniqueUserIds = [];
 const usedUserIds = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
-    container = document.querySelector('.posts');
-    countInput = document.querySelector('#countInput');
-    userIdInput = document.querySelector('#userIdInput');
-    randomCheckbox = document.querySelector('#randomCheckbox');
-    titleInput = document.querySelector('#titleInput');
-    searchButton = document.querySelector('#searchButton');
-
-    fetch('../posts.json', { method: 'GET' })
-        .then(response => {
-            if(!response.ok)
-                throw new Error('Ошибка сети: ' + response.status);
-        return response.json();
-        })
-        .then(data => {
-            console.log('Все посты: ', data);
-            allPosts = data;
-            uniqueUserIds = [...new Set(allPosts.map(p => Number(p.userId)))].sort((a, b) => a-b);
-            renderPosts(allPosts.slice(0, 30));
-        })
-        .catch(error => console.error('Ошибка: ', error));
+    initElements();
+    loadPosts();
 
     searchButton.addEventListener('click', () => {
         stopRandomMode();
-        const count = getCountFromInput();
-        const userId = getUserIdFromInput();
+        const count = getNumberFromInput(countInput, 1, 100, 'Введите значение count от 1 до 100');
+        const userId = getNumberFromInput(userIdInput, 1, 10, 'Введите значение userId от 1 до 10');
         if ((userId === null || userId === 'invalid') &&
-            (count  === null || count  === 'invalid')) { return;}
+            (count  === null || count  === 'invalid')) { return; }
         container.innerHTML = `<p style="font-size: 18px; font-weight: bold;">Ищем...</p>`;
         setTimeout(() => {
             container.innerHTML = '';
@@ -72,6 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function initElements() {
+    container = document.querySelector('.posts');
+    countInput = document.querySelector('#countInput');
+    userIdInput = document.querySelector('#userIdInput');
+    randomCheckbox = document.querySelector('#randomCheckbox');
+    titleInput = document.querySelector('#titleInput');
+    searchButton = document.querySelector('#searchButton');
+}
+
+async function loadPosts() {
+    try {
+        const response = await fetch('../posts.json', { method: 'GET' });
+        if(!response.ok) 
+            throw new Error('Ошибка сети: ' + response.status);
+
+        const data = await response.json();
+        console.log("Все посты: ", data);
+
+        allPosts = data;
+        uniqueUserIds = [...new Set(allPosts.map(p => Number(p.userId)))].sort((a, b) => a - b);
+        renderPosts(allPosts.slice(0, 30));
+    }
+    catch(error) {
+        console.error("Ошибка: ", error);
+    }
+}
+
 function renderPosts(posts) {
     posts.forEach(post => {
         const el = document.createElement('div');
@@ -85,26 +94,17 @@ function renderPosts(posts) {
     });
 }
 
-function getCountFromInput() {
-    const raw = (countInput?.value ?? '').trim();
+function getNumberFromInput(inputElement, min, max, errorMessage) {
+    const raw = (inputElement?.value ?? '').trim();
     if(raw === '') return null;
-    const count = Number(raw);
-    if(!Number.isInteger(count) || count < 1 || count > 100) {
-        alert('Введите значение count от 1 до 99');
-        return 'invalid';
-    }
-    return count;
-}
 
-function getUserIdFromInput() {
-    const raw = (userIdInput?.value ?? '').trim();
-    if(raw === '') return null;
-    const userId = Number(raw);
-    if(!Number.isInteger(userId) || userId < 1 || userId > 10) {
-        alert('Введите значение UserId от 1 до 10');
+    const value = Number(raw);
+    if(!Number.isInteger(value) || value < min || value > max) {
+        alert(errorMessage);
         return 'invalid';
     }
-    return userId;
+
+    return value;
 }
 
 function getRandomUnusedUserId() {
