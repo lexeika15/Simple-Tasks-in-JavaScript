@@ -11,8 +11,7 @@ let uniqueUserIds = [];
 const usedUserIds = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
-    initElements();
-    loadPosts();
+    initElementsAndLoadPosts();
     registerEventHandlers();
 });
 
@@ -41,6 +40,11 @@ async function loadPosts() {
     catch(error) {
         console.error("Ошибка: ", error);
     }
+}
+
+async function initElementsAndLoadPosts() {
+    initElements();
+    await loadPosts();
 }
 
 function registerEventHandlers() {
