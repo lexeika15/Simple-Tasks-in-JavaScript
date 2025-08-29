@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/main.js"></script>
+</head>
+<body>
+    <div class="search-bar">
+        <div class="inputs">
+            <div class="input-group">
+                <label for="countInput">Количество постов:</label>
+                <input type="number" id="countInput" placeholder="Количество постов">
+            </div>
+
+            <div class="input-group">
+                <label for="userIdInput">UserId:</label>
+                <input type="number" id="userIdInput" placeholder="UserId">
+            </div>
+
+            <div class="input-group">
+                <label for="titleInput">Название поста:</label>
+                <input type="text" id="titleInput" placeholder="Название поста">
+            </div>
+
+            <label class="random-option">
+                <span>Random поиск:</span>
+                <input type="checkbox" id="randomCheckbox">
+            </label>
+        </div>
+        <button id="searchButton">Поиск</button>
+    </div> 
+
+    <div class="posts"></div>
+</body>
+</html>
